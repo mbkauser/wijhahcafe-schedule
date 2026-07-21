@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Wijhah Cafe Schedule</title>
+<style>
+
+:root{--scarlet:#70172E;--ink:#000232;--blue:#395479;--green:#2F4842;--sepia:#A38175;--offwhite:#F8F7F3;--border:#E8E4DE;--pink:#C4938C;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--offwhite);color:var(--ink);min-height:100vh;padding-bottom:100px;}
+.header{background:var(--scarlet);color:white;padding:24px 24px 0;text-align:center;}
+.header-eyebrow{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.65;margin-bottom:6px;}
+.header h1{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:16px;}
+.month-tabs{display:flex;gap:4px;justify-content:center;}
+.month-tab{flex:1;max-width:180px;padding:8px 12px;border:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.18);color:rgba(255,255,255,.7);font-family:inherit;transition:all .15s;}
+.month-tab.active{background:var(--offwhite);color:var(--scarlet);}
+.filter-section{background:white;border-bottom:1px solid var(--border);padding:14px 20px;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.filter-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--sepia);margin-bottom:10px;}
+.name-pills{display:flex;flex-wrap:wrap;gap:6px;}
+.name-pill{background:var(--offwhite);border:1.5px solid var(--border);color:var(--ink);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;user-select:none;}
+.name-pill:hover{border-color:var(--blue);color:var(--blue);}
+.name-pill.active{background:var(--blue);border-color:var(--blue);color:white;font-weight:700;}
+.name-pill.all-pill.active{background:var(--scarlet);border-color:var(--scarlet);}
+.spotlight{margin:20px 20px 0;background:var(--ink);border-radius:16px;padding:20px 22px;color:white;display:none;}
+.spotlight.visible{display:block;}
+.spotlight-eyebrow{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;opacity:.45;margin-bottom:6px;}
+.spotlight-title{font-size:21px;font-weight:800;margin-bottom:3px;letter-spacing:-.3px;}
+.spotlight-time{font-size:13px;opacity:.55;margin-bottom:14px;}
+.spotlight-role{display:inline-block;padding:4px 13px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:12px;}
+.spotlight-role.lead{background:var(--green);}
+.spotlight-role.active{background:var(--blue);}
+.spotlight-role.runner{background:var(--sepia);}
+.spotlight-role.backup{background:rgba(255,255,255,.15);}
+.spotlight-team{font-size:12px;opacity:.5;}
+.shifts-wrap{padding:20px;display:flex;flex-direction:column;gap:12px;}
+.shift-card{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;}
+.shift-card.highlighted{border-color:var(--blue);box-shadow:0 2px 16px rgba(57,84,121,.13);}
+.shift-card.highlighted.is-lead{border-color:var(--green);box-shadow:0 2px 16px rgba(47,72,66,.14);}
+.shift-card.highlighted.is-runner{border-color:var(--sepia);box-shadow:0 2px 16px rgba(163,129,117,.14);}
+.card-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 12px;border-bottom:1px solid var(--border);}
+.card-date-group{display:flex;align-items:baseline;gap:10px;}
+.card-day{font-size:12px;font-weight:700;color:var(--sepia);text-transform:uppercase;letter-spacing:.5px;}
+.card-date{font-size:22px;font-weight:800;letter-spacing:-.5px;}
+.card-month{font-size:13px;color:var(--sepia);font-weight:500;}
+.today-badge{display:inline-block;background:var(--scarlet);color:white;font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-left:6px;}
+.card-time{font-size:13px;font-weight:600;color:var(--blue);text-align:right;}
+.card-body{padding:14px 18px 16px;}
+.barista-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.barista-badge{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:5px 12px;font-size:13px;font-weight:600;}
+.b-active{background:#EEF2F7;color:var(--ink);}
+.b-lead{background:var(--green);color:white;}
+.b-self{background:var(--blue);color:white;}
+.b-self.b-lead{background:var(--green);}
+.runner-row{font-size:12px;color:var(--sepia);padding-top:8px;border-top:1px solid var(--border);margin-top:4px;display:flex;align-items:center;gap:8px;}
+.runner-badge{background:rgba(163,129,117,.15);color:var(--sepia);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;}
+.runner-badge.b-self{background:var(--sepia);color:white;}
+.backup-row{font-size:12px;color:var(--sepia);padding-top:8px;border-top:1px solid var(--border);margin-top:8px;}
+.empty{text-align:center;padding:48px 24px;color:var(--sepia);font-size:15px;}
+.cal-bar{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1.5px solid var(--border);padding:14px 20px 20px;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:20;display:flex;flex-direction:column;gap:6px;}
+.cal-bar.visible{transform:translateY(0);}
+.cal-bar-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--sepia);}
+.cal-bar-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--scarlet);color:white;border:none;border-radius:10px;padding:14px 20px;font-size:15px;font-weight:700;cursor:pointer;width:100%;font-family:inherit;}
+.cal-bar-count{background:rgba(255,255,255,.25);border-radius:10px;padding:2px 8px;font-size:12px;font-weight:700;}
+.footer{text-align:center;padding:28px 24px;font-size:12px;color:var(--sepia);border-top:1px solid var(--border);}
+.shift-card.past{background:#f9f9f9;border-color:#e0e0e0;}
+.shift-card.past .card-day,.shift-card.past .card-date,.shift-card.past .card-month,.shift-card.past .card-time{color:#bbb;}
+.shift-card.past .barista-badge.b-active{background:#f0f0f0;color:#bbb;}
+.shift-card.past .barista-badge.b-lead,.shift-card.past .barista-badge.b-self{background:#ccc;color:#fff;}
+.shift-card.past .backup-row,.shift-card.past .runner-row{opacity:.4;}
+.shift-card.past .card-header{border-bottom-color:#eee;}
+@media(max-width:480px){.header h1{font-size:22px;}.shifts-wrap{padding:14px;gap:10px;}.filter-section{padding:12px 14px;}}
+
+.grocery-tab{background:var(--green)!important;color:white!important;opacity:.88;margin-right:10px;border-right:2px solid rgba(255,255,255,.2);}
+.grocery-tab:hover{opacity:1!important;}
+.grocery-tab.active{opacity:1!important;box-shadow:0 0 0 2px white,0 0 0 4px var(--green);color:white!important;background:var(--green)!important;}
+#groceries-view{padding:20px;}
+.grocery-header{margin-bottom:20px;}
+.grocery-title{font-size:20px;font-weight:800;color:var(--ink);margin-bottom:6px;}
+.grocery-subtitle{font-size:13px;color:var(--sepia);}
+.grocery-list{display:flex;flex-direction:column;gap:8px;}
+.grocery-cycle{background:white;border:1.5px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;}
+.cycle-current{background:var(--green);border-color:var(--green);}
+.cycle-past{background:#f9f9f9;border-color:#e0e0e0;}
+.cycle-past .cycle-dates,.cycle-past .cycle-person{color:#bbb;}
+.cycle-mine{border-color:var(--blue)!important;background:rgba(57,84,121,.1)!important;}.cycle-current.cycle-mine{background:var(--green)!important;border-color:var(--blue)!important;}
+.cycle-dates{font-size:13px;font-weight:600;color:var(--sepia);}
+.cycle-past .cycle-dates{color:#bbb;}.cycle-current .cycle-dates{color:rgba(255,255,255,.8);}.cycle-current .cycle-person{color:white;}
+.cycle-person{font-size:15px;font-weight:700;color:var(--ink);}
+.cycle-person-self{color:var(--blue);}
+.cycle-now-badge{display:inline-block;background:white;color:var(--green);font-size:10px;font-weight:700;text-transform:uppercase;padding:2px 7px;border-radius:4px;margin-left:6px;vertical-align:middle;}
+.spotlight-grocery{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15);font-size:13px;opacity:.85;}
+
+
+.event-strip{height:6px;width:100%;}
+.ev-sunday .event-strip{background:var(--blue);}
+.ev-wednesday .event-strip{background:var(--sepia);}
+.ev-friday .event-strip{background:var(--scarlet);}
+.ev-thursday .event-strip{background:var(--pink);}
+.event-label{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:3px 8px;border-radius:10px;white-space:nowrap;}
+.ev-sunday .event-label{background:var(--blue);color:white;}
+.ev-wednesday .event-label{background:var(--sepia);color:white;}
+.ev-friday .event-label{background:var(--scarlet);color:white;}
+.ev-thursday .event-label{background:var(--pink);color:white;}
+.shift-card.past .event-strip{opacity:.25;}
+.shift-card.past .event-label{opacity:.4;}
+.shift-card.highlighted.ev-friday{border-color:var(--scarlet);box-shadow:0 2px 16px rgba(112,23,46,.15);}
+.shift-card.highlighted.ev-wednesday{border-color:var(--sepia);box-shadow:0 2px 16px rgba(163,129,117,.18);}
+.shift-card.highlighted.ev-thursday{border-color:var(--pink);box-shadow:0 2px 16px rgba(196,147,140,.2);}
+.day-pill-row{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}
+.day-pill{border:1.5px solid var(--border);background:var(--offwhite);border-radius:20px;padding:5px 13px;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;user-select:none;letter-spacing:.4px;text-transform:uppercase;}
+.day-pill.dp-friday{color:var(--scarlet);border-color:rgba(112,23,46,.3);}
+.day-pill.dp-friday.active{background:var(--scarlet);color:white;border-color:var(--scarlet);}
+.day-pill.dp-wednesday{color:var(--sepia);border-color:rgba(163,129,117,.4);}
+.day-pill.dp-wednesday.active{background:var(--sepia);color:white;border-color:var(--sepia);}
+.day-pill.dp-sunday{color:var(--blue);border-color:rgba(57,84,121,.3);}
+.day-pill.dp-sunday.active{background:var(--blue);color:white;border-color:var(--blue);}
+.day-pill.dp-thursday{color:var(--pink);border-color:rgba(196,147,140,.4);}
+.day-pill.dp-thursday.active{background:var(--pink);color:white;border-color:var(--pink);}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-eyebrow">&#9749; Wijhah Caf&#233;</div>
+  <h1>Schedule</h1>
+  <div class="month-tabs"><button class="month-tab grocery-tab" onclick="setGroceries(this)">&#x1F6D2; Groceries</button><button class="month-tab active" onclick="setMonth(0,this)">June 2026</button><button class="month-tab" onclick="setMonth(1,this)">July 2026</button><button class="month-tab" onclick="setMonth(2,this)">August 2026</button></div>
+</div>
+<div class="filter-section">
+  <div class="filter-label">Tap your name</div>
+  <div class="name-pills" id="name-pills">
+    <div class="name-pill all-pill active" onclick="setFilter(null,this)">Everyone</div>
+  </div>
+<div id="day-pills" class="day-pill-row"><span class="day-pill dp-friday" onclick="setDayFilter('Friday',this)">&#9654; Faith Circles</span><span class="day-pill dp-wednesday" onclick="setDayFilter('Wednesday',this)">&#9654; Inner Compass</span><span class="day-pill dp-sunday" onclick="setDayFilter('Sunday',this)">&#9654; Sunday Suhbah</span><span class="day-pill dp-thursday" onclick="setDayFilter('Thursday',this)">&#9654; Pearls of Wisdom</span></div>
+</div>
+<div class="spotlight" id="spotlight"></div>
+<div class="shifts-wrap" id="shifts-wrap"></div>
+<div id="groceries-view" style="display:none"></div>
+<div class="footer">Wijhah Caf&#233;</div>
+<div class="cal-bar" id="cal-bar">
+  <div class="cal-bar-label" id="cal-bar-label"></div>
+  <button class="cal-bar-btn" onclick="exportShifts()">
+    &#128197; Add all my shifts to calendar <span class="cal-bar-count" id="cal-bar-count"></span>
+  </button>
+</div>
+<script>
+
+const SCHEDULE_API_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+let MONTHS = [];
+const BARISTAS=["Abdullah S.","Habiba Hashi","Maryam Ahmed","Maryam Ullah","Minelle Zuberi","Mubasshira","Taha Butta","Tooba Shaikh","Umar"];
+const GROCERY_ORDER=["Abdullah S.","Habiba Hashi","Maryam Ahmed","Maryam Ullah","Minelle Zuberi","Mubasshira","Taha Butta","Tooba Shaikh","Umar"];
+const GROCERY_START_DATE='2026-07-01';
+let mi=0,af=null,df=null,showGroceries=false;
+
+function ds(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function cur(){return (MONTHS[mi]&&MONTHS[mi].schedule)||[];}
+
+function getGroceryCycles(count){
+  const cycles=[];const[sy,sm,sd]=GROCERY_START_DATE.split('-').map(Number);
+  const base=new Date(sy,sm-1,sd);
+  for(let i=0;i<count;i++){
+    const s=new Date(base);s.setDate(s.getDate()+i*14);
+    const e=new Date(s);e.setDate(e.getDate()+13);
+    cycles.push({start:ds(s),end:ds(e),person:GROCERY_ORDER[i%GROCERY_ORDER.length]});
+  }
+  return cycles;
+}
+function getMyGroceryDuty(name){
+  const today=ds(new Date());
+  return getGroceryCycles(52).filter(c=>c.person===name&&c.end>=today).slice(0,4);
+}
+function fmtDate(d){const[y,m,dy]=d.split('-').map(Number);return new Date(y,m-1,dy).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+
+function setMonth(idx,el){var dp=document.getElementById('day-pills');if(dp)dp.style.display='';
+  showGroceries=false;mi=idx;
+  document.querySelectorAll('.month-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.getElementById('shifts-wrap').style.display='';
+  document.getElementById('groceries-view').style.display='none';
+  render();renderSpotlight();updateCalBar();
+}
+function setGroceries(el){var dp=document.getElementById('day-pills');if(dp)dp.style.display='none';df=null;document.querySelectorAll('.day-pill').forEach(function(p){p.classList.remove('active');});
+  showGroceries=true;
+  document.querySelectorAll('.month-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.getElementById('shifts-wrap').style.display='none';
+  document.getElementById('groceries-view').style.display='';
+  renderGroceries();renderSpotlight();
+  document.getElementById('cal-bar').classList.remove('visible');
+}
+function buildPills(){
+  const c=document.getElementById('name-pills');
+  c.querySelectorAll('.name-pill:not(.all-pill)').forEach(p=>p.remove());
+  BARISTAS.forEach(name=>{
+    const p=document.createElement('div');p.className='name-pill';p.textContent=name;
+    p.onclick=()=>setFilter(name,p);c.appendChild(p);
+  });
+}
+function setFilter(name,el){
+  af=name;document.querySelectorAll('.name-pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');
+  if(showGroceries){renderSpotlight();renderGroceries();}
+  else{render();renderSpotlight();updateCalBar();window.scrollTo({top:0,behavior:'smooth'});}
+}
+function setDayFilter(day,el){if(df===day){df=null;document.querySelectorAll('.day-pill').forEach(p=>p.classList.remove('active'));}else{df=day;document.querySelectorAll('.day-pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');}render();}
+function onShift(s,n){if(!n)return true;return s.active.includes(n)||s.runner===n;}
+function allMyShifts(){if(!af)return[];return cur().filter(s=>onShift(s,af));}
+function updateCalBar(){
+  const bar=document.getElementById('cal-bar'),lbl=document.getElementById('cal-bar-label'),cnt=document.getElementById('cal-bar-count');
+  const a=allMyShifts();
+  if(!af||!a.length||showGroceries){bar.classList.remove('visible');return;}
+  lbl.textContent=af+' \u00B7 '+a.length+' shift'+(a.length!==1?'s':'')+' total';
+  cnt.textContent=a.length;bar.classList.add('visible');
+}
+function renderSpotlight(){
+  const box=document.getElementById('spotlight');
+  if(!af){box.classList.remove('visible');return;}
+  const today=ds(new Date());
+  let next=null;
+  if(!showGroceries){
+    outer:for(const m of MONTHS)for(const s of m.schedule){if(s.date>=today&&onShift(s,af)){next=s;break outer;}}
+  }
+  const groceryDuties=getMyGroceryDuty(af);
+  if(!next&&!groceryDuties.length){box.classList.remove('visible');return;}
+  let html='';
+  if(next){
+    const isRunner=next.runner===af,isToday=next.date===today;
+    const rc=isRunner?'runner':'active';
+    const d=new Date(next.date+'T12:00:00');
+    const lbl=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    const others=next.active.filter(n=>n!==af);
+    html+='<div class="spotlight-eyebrow">'+(isToday?"Today\'s shift":"Coming up next")+'</div><div class="spotlight-title">'+lbl+'</div><div class="spotlight-time">'+next.time+'</div><span class="spotlight-role '+rc+'">'+(isRunner?'Runner':'On shift')+'</span><div class="spotlight-team">Also on shift: '+(others.length?others.join(', '):'\u2014')+'</div>';
+  } else {
+    html+='<div class="spotlight-eyebrow">Hey, '+af.split(' ')[0]+'</div><div class="spotlight-title">No upcoming shifts found</div>';
+  }
+  if(groceryDuties.length){
+    const _cs=MONTHS[mi]&&MONTHS[mi].schedule||[],_mf=_cs.length?_cs[0].date:'2099',_ml=_cs.length?_cs[_cs.length-1].date:'2000';const monthDuties=groceryDuties.filter(c=>c.start<=_ml&&c.end>=_mf);const dutyStr=monthDuties.map(c=>fmtDate(c.start)+'\u2013'+fmtDate(c.end)).join(' \u00B7 ');
+    html+='<div class="spotlight-grocery">\uD83D\uDED2 Grocery duty: '+dutyStr+'</div>';
+  }
+  box.className='spotlight visible';box.innerHTML=html;
+}
+function renderGroceries(){
+  const view=document.getElementById('groceries-view');
+  const today=ds(new Date());
+  const cycles=getGroceryCycles(26);
+  let rows='';
+  cycles.forEach(c=>{
+    const isCurrent=c.start<=today&&c.end>=today;
+    const isPast=c.end<today;
+    const isHighlighted=af&&c.person===af;
+    let cls='grocery-cycle';
+    if(isCurrent)cls+=' cycle-current';else if(isPast)cls+=' cycle-past';
+    if(isHighlighted)cls+=' cycle-mine';
+    rows+='<div class="'+cls+'"><div class="cycle-dates">'+fmtDate(c.start)+' \u2013 '+fmtDate(c.end)+'</div><div class="cycle-person'+(isHighlighted?' cycle-person-self':'')+'">'+c.person+(isCurrent?' <span class="cycle-now-badge">Now</span>':'')+'</div></div>';
+  });
+  view.innerHTML='<div class="grocery-header"><div class="grocery-title">\uD83D\uDED2 Stock & Groceries</div><div class="grocery-subtitle">One barista handles restocking every 2 weeks, rotating through the whole team.</div></div><div class="grocery-list">'+rows+'</div>';
+}
+function render(){
+  const wrap=document.getElementById('shifts-wrap'),today=ds(new Date());
+  let toShow=af?cur().filter(s=>onShift(s,af)):cur();if(df)toShow=toShow.filter(s=>s.day===df);
+  if(!toShow.length){wrap.innerHTML='<div class="empty">\u2615<br>No shifts this month.</div>';return;}
+  wrap.innerHTML='';
+  toShow.forEach(s=>{
+    const d=new Date(s.date+'T12:00:00');const isToday=s.date===today;
+    const card=document.createElement('div');
+    const evCls=s.day==='Sunday'?'ev-sunday':s.day==='Wednesday'?'ev-wednesday':s.day==='Thursday'?'ev-thursday':'ev-friday';
+    const evName=s.day==='Sunday'?'Sunday Suhbah':s.day==='Wednesday'?'Inner Compass':s.day==='Thursday'?'Pearls of Wisdom':'Faith Circles';
+    let cls='shift-card highlighted '+evCls;
+    if(af&&s.runner===af)cls+=' is-runner';if(s.date<today)cls+=' past';
+    card.className=cls;
+    let badges='';s.active.forEach(name=>{const self=name===af;badges+='<span class="barista-badge'+(self?' b-self':' b-active')+'">'+name+'</span>';});
+    const rLabel=s.day==='Thursday'?'Lead':'Runner';
+    const rHTML=s.runner?('<div class="runner-row"><strong>'+rLabel+':</strong><span class="runner-badge'+(s.runner===af?' b-self':'')+'">\uD83C\uDFC3 '+s.runner+'</span></div>'):'';
+    const bHTML=!af?('<div class="backup-row"><strong>Backup:</strong> '+(s.backup&&s.backup.length?s.backup.join(', '):'\u2014')+'</div>'):'';
+    const dayNum=d.getDate();const mo=d.toLocaleDateString('en-US',{month:'short'});
+    card.innerHTML='<div class="event-strip"></div><div class="card-header"><div class="card-date-group"><div class="card-day">'+s.day.slice(0,3)+'</div><div class="card-date">'+dayNum+'</div><div class="card-month">'+mo+(isToday?'<span class="today-badge">Today</span>':'')+'</div></div><div class="card-right"><div class="card-time">'+s.time+'</div><span class="event-label">'+evName+'</span></div></div><div class="card-body"><div class="barista-row">'+badges+'</div>'+rHTML+bHTML+'</div>';
+    wrap.appendChild(card);
+  });
+}
+function exportShifts(){
+  const a=allMyShifts();if(!a.length)return;
+  const evts=a.map(s=>{const[st,en]=pt(s.date,s.time);const role=s.runner===af?'Runner':'On shift';const now=new Date().toISOString().replace(/[:.-]/g,'').slice(0,15)+'Z';return['BEGIN:VEVENT','UID:'+s.date+'-'+af.replace(/\s/g,'')+'@wijhah.org','DTSTAMP:'+now,'DTSTART:'+st,'DTEND:'+en,'SUMMARY:Wijhah Caf\u00E9 \u2013 '+role,'LOCATION:Wijhah','END:VEVENT'].join('\r\n');}).join('\r\n');
+  const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Wijhah Caf\u00E9//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH',evts,'END:VCALENDAR'].join('\r\n');
+  const a2=document.createElement('a');a2.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar;charset=utf-8'}));a2.download='wijhah-cafe-'+af.toLowerCase().replace(/\s/g,'-')+'.ics';a2.click();
+}
+function pt(date,time){
+  const p=time.replace('\u2013','-').split('-').map(s=>s.trim());
+  function iso(t,b){const m=t.match(/(\d+):(\d+)\s*(AM|PM)/i);if(!m)return null;let h=parseInt(m[1]),mn=parseInt(m[2]);if(m[3].toUpperCase()==='PM'&&h!==12)h+=12;if(m[3].toUpperCase()==='AM'&&h===12)h=0;return b.replace(/-/g,'')+'T'+String(h).padStart(2,'0')+String(mn).padStart(2,'0')+'00';}
+  return[iso(p[0],date),iso(p[1],date)];
+}
+
+function showLoading(msg){
+  document.getElementById('shifts-wrap').innerHTML='<div class="empty">\u2615<br>'+msg+'</div>';
+}
+function loadSchedule(){
+  showLoading('Loading schedule…');
+  fetch(SCHEDULE_API_URL)
+    .then(r=>{ if(!r.ok) throw new Error('Network response was not OK'); return r.json(); })
+    .then(data=>{
+      MONTHS = data;
+      buildPills();
+      render();
+      renderSpotlight();
+      updateCalBar();
+    })
+    .catch(err=>{
+      console.error('Failed to load schedule:', err);
+      showLoading('Could not load the schedule. Check SCHEDULE_API_URL is set correctly.');
+    });
+}
+
+buildPills();
+loadSchedule();
+
+</script>
+</body>
+</html>
