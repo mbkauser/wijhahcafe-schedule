@@ -122,7 +122,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="header">
   <div class="header-eyebrow">&#9749; Wijhah Caf&#233;</div>
   <h1>Schedule</h1>
-  <div class="month-tabs"><button class="month-tab grocery-tab" onclick="setGroceries(this)">&#x1F6D2; Groceries</button><button class="month-tab active" onclick="setMonth(0,this)">June 2026</button><button class="month-tab" onclick="setMonth(1,this)">July 2026</button><button class="month-tab" onclick="setMonth(2,this)">August 2026</button></div>
+  <div class="month-tabs" id="month-tabs"><button class="month-tab grocery-tab" onclick="setGroceries(this)">&#x1F6D2; Groceries</button><span id="month-tab-buttons"></span></div>
 </div>
 <div class="filter-section">
   <div class="filter-label">Tap your name</div>
@@ -146,8 +146,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 const SCHEDULE_API_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 
 let MONTHS = [];
-const BARISTAS=["Abdullah S.","Habiba Hashi","Maryam Ahmed","Maryam Ullah","Minelle Zuberi","Mubasshira","Taha Butta","Tooba Shaikh","Umar"];
-const GROCERY_ORDER=["Abdullah S.","Habiba Hashi","Maryam Ahmed","Maryam Ullah","Minelle Zuberi","Mubasshira","Taha Butta","Tooba Shaikh","Umar"];
+const BARISTAS=["Abdullah S.","Habiba Hashi","Maryam Ahmed","Maryam Ullah","Minelle Zuberi","Mubasshira","Taha Butta","Umar"];
+const GROCERY_ORDER=["Abdullah S.","Habiba Hashi","Maryam Ahmed","Maryam Ullah","Minelle Zuberi","Mubasshira","Taha Butta","Umar"];
 const GROCERY_START_DATE='2026-07-01';
 let mi=0,af=null,df=null,showGroceries=false;
 
@@ -288,13 +288,44 @@ function pt(date,time){
 function showLoading(msg){
   document.getElementById('shifts-wrap').innerHTML='<div class="empty">\u2615<br>'+msg+'</div>';
 }
+
+// Removes any month that's entirely in the past, and removes any
+// individual shift date that's already passed within a month that's
+// still current/upcoming. Runs every time the page loads, so it's
+// always accurate to "today" regardless of when the schedule was
+// last regenerated.
+function filterPastData(rawMonths){
+  const today = ds(new Date());
+  return rawMonths
+    .map(m => ({ ...m, schedule: (m.schedule||[]).filter(s => s.date >= today) }))
+    .filter(m => m.schedule.length > 0);
+}
+
+function buildMonthTabs(){
+  const container = document.getElementById('month-tab-buttons');
+  container.innerHTML = '';
+  MONTHS.forEach((m, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'month-tab' + (idx === 0 ? ' active' : '');
+    btn.textContent = m.monthName + ' ' + m.year;
+    btn.onclick = () => setMonth(idx, btn);
+    container.appendChild(btn);
+  });
+}
+
 function loadSchedule(){
   showLoading('Loading schedule…');
   fetch(SCHEDULE_API_URL)
     .then(r=>{ if(!r.ok) throw new Error('Network response was not OK'); return r.json(); })
     .then(data=>{
-      MONTHS = data;
+      MONTHS = filterPastData(data);
+      mi = 0; // always start on the soonest month remaining
       buildPills();
+      buildMonthTabs();
+      if (!MONTHS.length) {
+        showLoading('No upcoming shifts scheduled yet.');
+        return;
+      }
       render();
       renderSpotlight();
       updateCalBar();
