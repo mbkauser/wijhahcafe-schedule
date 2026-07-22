@@ -143,7 +143,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <script>
 
-const SCHEDULE_API_URL = 'https://script.google.com/macros/s/AKfycbwuDMu6q2L_FAq_5QQk0DbEK-scdkvA46rv8o69JM5-pK4smuT0bCzI3oJ-FafQYKNo-A/exec';
+const SCHEDULE_API_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 
 let MONTHS = [];
 const BARISTAS=["Abdullah S.","Habiba Hashi","Maryam Ahmed","Maryam Ullah","Minelle Zuberi","Mubasshira","Taha Butta","Umar"];
@@ -265,8 +265,7 @@ function render(){
     if(af&&s.runner===af)cls+=' is-runner';if(s.date<today)cls+=' past';
     card.className=cls;
     let badges='';s.active.forEach(name=>{const self=name===af;badges+='<span class="barista-badge'+(self?' b-self':' b-active')+'">'+name+'</span>';});
-    const rLabel=s.day==='Thursday'?'Lead':'Runner';
-    const rHTML=s.runner?('<div class="runner-row"><strong>'+rLabel+':</strong><span class="runner-badge'+(s.runner===af?' b-self':'')+'">\uD83C\uDFC3 '+s.runner+'</span></div>'):'';
+    const rHTML=s.runner?('<div class="runner-row"><strong>Runner:</strong><span class="runner-badge'+(s.runner===af?' b-self':'')+'">\uD83C\uDFC3 '+s.runner+'</span></div>'):'';
     const bHTML=!af?('<div class="backup-row"><strong>Backup:</strong> '+(s.backup&&s.backup.length?s.backup.join(', '):'\u2014')+'</div>'):'';
     const dayNum=d.getDate();const mo=d.toLocaleDateString('en-US',{month:'short'});
     card.innerHTML='<div class="event-strip"></div><div class="card-header"><div class="card-date-group"><div class="card-day">'+s.day.slice(0,3)+'</div><div class="card-date">'+dayNum+'</div><div class="card-month">'+mo+(isToday?'<span class="today-badge">Today</span>':'')+'</div></div><div class="card-right"><div class="card-time">'+s.time+'</div><span class="event-label">'+evName+'</span></div></div><div class="card-body"><div class="barista-row">'+badges+'</div>'+rHTML+bHTML+'</div>';
